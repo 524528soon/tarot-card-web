@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f4eee3" />
+    <title>星象塔罗 · 在线卡牌占卜</title>
+    <meta
+      name="description"
+      content="一个复古纸感风格的在线塔罗牌网页，选择服务、输入问题、抽取卡牌，并复制适配牌阵的 AI 解读提示词。"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Noto+Serif+SC:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+    <script src="./script.js" defer></script>
+  </head>
+  <body>
+    <div class="paper-grain" aria-hidden="true"></div>
+
+    <main id="app">
+      <section class="screen splash is-active" data-screen="splash" aria-label="星象塔罗启动页">
+        <div class="splash-cardscape" aria-hidden="true">
+          <div class="floating-card card-a"></div>
+          <div class="floating-card card-b"></div>
+          <div class="floating-card card-c"></div>
+          <div class="floating-card card-d"></div>
+          <div class="floating-card card-e"></div>
+          <div class="floating-card card-f"></div>
+        </div>
+
+        <div class="entry-panel">
+          <h1>星象塔罗</h1>
+          <div class="ornament">
+            <span></span>
+            <b>✧</b>
+            <span></span>
+          </div>
+          <p>ASTRAL CARD ORACLE</p>
+          <button class="text-button entry-button" data-action="enter">ENTER</button>
+        </div>
+
+        <p class="splash-footer">© 2026 ASTRAL TAROT</p>
+      </section>
+
+      <section class="screen app-shell" data-screen="spreads" aria-label="选择服务">
+        <header class="topbar">
+          <button class="brand-button" data-action="home" aria-label="回到首页">Astral Tarot</button>
+          <button class="icon-button" data-action="toggle-menu" aria-label="打开菜单">
+            <i data-lucide="menu">☰</i>
+          </button>
+        </header>
+
+        <div class="content spread-content">
+          <p class="eyebrow" id="categoryEyebrow">CLASSIC SPREADS</p>
+          <h2>选择服务</h2>
+
+          <div class="segmented" role="tablist" aria-label="服务类别">
+            <button class="is-selected" type="button" data-category="classic">经典牌阵</button>
+            <button type="button" data-category="daily">日常占卜</button>
+          </div>
+
+          <div class="spread-grid" id="spreadGrid" aria-live="polite"></div>
+        </div>
+
+        <footer class="site-footer">
+          <p>Designed & Crafted for Astral Tarot · © 2026</p>
+          <p>Quiet readings for uncertain nights</p>
+        </footer>
+      </section>
+
+      <section class="screen app-shell" data-screen="question" aria-label="输入问题">
+        <header class="topbar">
+          <button class="brand-button" data-action="go-spreads" aria-label="返回服务列表">Astral Tarot</button>
+          <button class="icon-button" data-action="toggle-menu" aria-label="打开菜单">
+            <i data-lucide="menu">☰</i>
+          </button>
+        </header>
+
+        <div class="content question-content">
+          <p class="eyebrow" data-spread-count>3 张牌</p>
+          <h2 id="questionHeading">输入你的问题</h2>
+
+          <label class="question-box" id="normalQuestionBox">
+            <span class="sr-only">输入你的问题</span>
+            <textarea
+              id="questionInput"
+              maxlength="150"
+              placeholder="请静心，将你想问的事情写下来……"
+            ></textarea>
+          </label>
+          <div class="counter" id="normalCounter"><span id="charCount">0</span> / 150</div>
+
+          <div class="choice-fields" id="choiceFields" hidden>
+            <label class="choice-field">
+              <span>选项 A</span>
+              <textarea id="optionAInput" maxlength="100" placeholder="例如：留在现在的工作"></textarea>
+              <em><b id="optionACount">0</b> / 100</em>
+            </label>
+            <label class="choice-field">
+              <span>选项 B</span>
+              <textarea id="optionBInput" maxlength="100" placeholder="例如：接受新的邀约"></textarea>
+              <em><b id="optionBCount">0</b> / 100</em>
+            </label>
+          </div>
+
+          <div class="yesno-count" id="yesNoCount" hidden>
+            <p>抽几张</p>
+            <button class="is-selected" type="button" data-yesno-count="3">3</button>
+            <button type="button" data-yesno-count="5">5</button>
+          </div>
+
+          <div class="action-row">
+            <button class="text-button ghost" data-action="go-spreads">返回</button>
+            <button class="text-button primary" data-action="start-reading" disabled>开始抽牌</button>
+          </div>
+        </div>
+
+        <footer class="site-footer">
+          <p>Designed & Crafted for Astral Tarot · © 2026</p>
+          <p>Quiet readings for uncertain nights</p>
+        </footer>
+      </section>
+
+      <section class="screen loading-screen" data-screen="loading" aria-live="polite" aria-label="抽牌中">
+        <div class="starfield">
+          <div class="stars layer-one"></div>
+          <div class="stars layer-two"></div>
+          <div class="loading-ring"></div>
+          <div class="moon-orb"></div>
+          <div class="loading-card orbit-one"></div>
+          <div class="loading-card orbit-two"></div>
+          <div class="loading-card orbit-three"></div>
+        </div>
+        <p id="loadingText">让牌面在夜空中慢慢浮现</p>
+      </section>
+
+      <section class="screen app-shell" data-screen="reading" aria-label="卡牌结果">
+        <header class="topbar">
+          <button class="brand-button" data-action="go-spreads" aria-label="返回服务列表">Astral Tarot</button>
+          <button class="icon-button" data-action="toggle-menu" aria-label="打开菜单">
+            <i data-lucide="menu">☰</i>
+          </button>
+        </header>
+
+        <div class="content reading-content">
+          <p class="eyebrow" id="resultEyebrow">你的问题</p>
+          <h2 id="questionTitle"></h2>
+          <p class="draw-hint" data-draw-hint>✦ 依序点击抽牌 ✦</p>
+
+          <div class="cards-row" id="cardsRow" aria-label="抽出的卡牌"></div>
+          <div class="result-summary" id="resultSummary" hidden></div>
+
+          <div class="deck-tools">
+            <span class="deck-count"><i data-lucide="book-open">▱</i> 牌堆剩余 <b id="deckCount">78</b> 张</span>
+            <span class="divider">|</span>
+            <button class="inline-tool" data-action="shuffle"><i data-lucide="shuffle">↝</i>洗牌</button>
+          </div>
+
+          <div class="divider-line"></div>
+
+          <fieldset class="tone-field" data-tone-field hidden>
+            <legend>AI 回文风格</legend>
+            <label><input type="radio" name="tone" value="预设（推荐）" checked />预设（推荐）</label>
+            <label><input type="radio" name="tone" value="中立" />中立</label>
+            <label><input type="radio" name="tone" value="温柔" />温柔</label>
+          </fieldset>
+
+          <div class="result-actions">
+            <button class="text-button" data-action="reveal-all"><i data-lucide="sparkles">✦</i>全部翻面</button>
+            <button class="text-button wide" data-action="copy-prompt" disabled>
+              <i data-lucide="copy">⧉</i>复制提示词给 AI 解读
+            </button>
+            <button class="text-button" data-action="share-reading" disabled><i data-lucide="image">▧</i>分享图片</button>
+            <button class="text-button" data-action="restart"><i data-lucide="rotate-ccw">↻</i>再抽一次</button>
+            <button class="text-button" data-action="open-history"><i data-lucide="history">◷</i>历史记录</button>
+          </div>
+
+          <div class="support-box">
+            <p>喜欢这次的占卜吗？</p>
+            <div>
+              <button class="text-button filled" data-action="go-spreads">重新选择服务</button>
+              <button class="text-button" data-action="save-reading">保存记录</button>
+            </div>
+          </div>
+        </div>
+
+        <footer class="site-footer">
+          <p>Designed & Crafted for Astral Tarot · © 2026</p>
+          <p>Quiet readings for uncertain nights</p>
+        </footer>
+      </section>
+    </main>
+
+    <div class="menu-drawer" data-menu>
+      <button data-action="go-spreads">选择服务</button>
+      <button data-action="open-history">历史记录</button>
+    </div>
+
+    <dialog class="modal" id="historyModal">
+      <div class="modal-head">
+        <h3>历史记录</h3>
+        <button class="icon-button" data-action="close-history" aria-label="关闭历史记录">
+          <i data-lucide="x">×</i>
+        </button>
+      </div>
+      <div class="history-list" id="historyList"></div>
+    </dialog>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </body>
+</html>
