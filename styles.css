@@ -130,6 +130,7 @@ button:disabled {
   top: 7%;
   left: 12%;
   background-image: url("./assets/cards/17-star.jpg");
+  background-image: image-set(url("./assets/cards/17-star.webp") type("image/webp"), url("./assets/cards/17-star.jpg") type("image/jpeg"));
   --rot: -15deg;
   --lift: 0.8rem;
 }
@@ -138,6 +139,7 @@ button:disabled {
   top: 13%;
   right: 12%;
   background-image: url("./assets/cards/18-moon.jpg");
+  background-image: image-set(url("./assets/cards/18-moon.webp") type("image/webp"), url("./assets/cards/18-moon.jpg") type("image/jpeg"));
   --rot: 13deg;
   --lift: 0.65rem;
   animation-delay: -2s;
@@ -147,6 +149,7 @@ button:disabled {
   top: 38%;
   left: 4%;
   background-image: url("./assets/cards/19-sun.jpg");
+  background-image: image-set(url("./assets/cards/19-sun.webp") type("image/webp"), url("./assets/cards/19-sun.jpg") type("image/jpeg"));
   --rot: 8deg;
   --lift: 0.9rem;
   animation-delay: -5s;
@@ -156,6 +159,7 @@ button:disabled {
   right: 3%;
   bottom: 20%;
   background-image: url("./assets/cards/16-tower.jpg");
+  background-image: image-set(url("./assets/cards/16-tower.webp") type("image/webp"), url("./assets/cards/16-tower.jpg") type("image/jpeg"));
   --rot: 15deg;
   --lift: 0.75rem;
   animation-delay: -3s;
@@ -165,6 +169,7 @@ button:disabled {
   bottom: 10%;
   left: 14%;
   background-image: url("./assets/cards/06-lovers.jpg");
+  background-image: image-set(url("./assets/cards/06-lovers.webp") type("image/webp"), url("./assets/cards/06-lovers.jpg") type("image/jpeg"));
   --rot: -12deg;
   --lift: 0.7rem;
   animation-delay: -6s;
@@ -174,6 +179,7 @@ button:disabled {
   right: 21%;
   bottom: 5%;
   background-image: url("./assets/card-back.jpg");
+  background-image: image-set(url("./assets/card-back.webp") type("image/webp"), url("./assets/card-back.jpg") type("image/jpeg"));
   --rot: 10deg;
   --lift: 0.85rem;
   animation-delay: -1s;
@@ -729,6 +735,7 @@ textarea:focus {
   aspect-ratio: 2 / 3;
   border-radius: 0.28rem;
   background-image: url("./assets/card-back.jpg");
+  background-image: image-set(url("./assets/card-back.webp") type("image/webp"), url("./assets/card-back.jpg") type("image/jpeg"));
   background-position: center;
   background-size: cover;
   box-shadow: 0 0.9rem 2rem rgba(0, 0, 0, 0.28);
@@ -1071,6 +1078,7 @@ textarea:focus {
 
 .tarot-back {
   background-image: url("./assets/card-back.jpg");
+  background-image: image-set(url("./assets/card-back.webp") type("image/webp"), url("./assets/card-back.jpg") type("image/jpeg"));
   background-position: center;
   background-size: cover;
 }

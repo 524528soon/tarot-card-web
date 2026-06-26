@@ -79,6 +79,15 @@ const tarotDeck = [
   { id: "wands14", name: "权杖国王", en: "King of Wands", image: "./assets/cards/wands14.jpg" },
 ];
 
+const CARD_IMAGE_WIDTH = 420;
+const CARD_IMAGE_HEIGHT = 630;
+const toWebp = (path) => path.replace(/\.jpg$/i, ".webp");
+
+tarotDeck.forEach((card) => {
+  card.fallbackImage = card.image;
+  card.image = toWebp(card.image);
+});
+
 const services = [
   {
     id: "two",
@@ -288,16 +297,81 @@ const loadingText = document.querySelector("#loadingText");
 
 let loadingTimer = null;
 let toastTimer = null;
+let loadingRun = 0;
+let deckWarmupStarted = false;
+const imagePreloadCache = new Map();
 
 function showScreen(name) {
   screens.forEach((screen) => screen.classList.toggle("is-active", screen.dataset.screen === name));
   closeMenu();
   window.scrollTo({ top: 0, left: 0, behavior: "auto" });
   refreshIcons();
+  if (name === "spreads") scheduleDeckWarmup();
 }
 
 function refreshIcons() {
   if (window.lucide) window.lucide.createIcons();
+}
+
+function delay(ms) {
+  return new Promise((resolve) => {
+    window.setTimeout(resolve, ms);
+  });
+}
+
+function withTimeout(promise, ms) {
+  return Promise.race([promise, delay(ms)]);
+}
+
+function preloadImage(src) {
+  if (!src) return Promise.resolve();
+  if (imagePreloadCache.has(src)) return imagePreloadCache.get(src);
+
+  const promise = new Promise((resolve, reject) => {
+    const image = new Image();
+    image.decoding = "async";
+    image.onload = () => resolve(src);
+    image.onerror = reject;
+    image.src = src;
+  });
+  imagePreloadCache.set(src, promise);
+  return promise;
+}
+
+function preloadCard(card) {
+  return preloadImage(card.image).catch(() => preloadImage(card.fallbackImage));
+}
+
+function preloadActiveCards() {
+  return Promise.allSettled(activeCards().map((card) => preloadCard(card)));
+}
+
+function scheduleDeckWarmup() {
+  if (deckWarmupStarted || navigator.connection?.saveData) return;
+  deckWarmupStarted = true;
+  const queue = shuffle(tarotDeck).map((card) => card.image);
+  const loadBatch = () => {
+    queue.splice(0, 4).forEach((src) => preloadImage(src).catch(() => {}));
+    if (queue.length) window.setTimeout(loadBatch, 350);
+  };
+  const schedule = window.requestIdleCallback || ((callback) => window.setTimeout(callback, 900));
+  schedule(loadBatch);
+}
+
+function preloadEssentials() {
+  [
+    "./assets/card-back.webp",
+    "./assets/cards/17-star.webp",
+    "./assets/cards/18-moon.webp",
+    "./assets/cards/19-sun.webp",
+    "./assets/cards/16-tower.webp",
+    "./assets/cards/06-lovers.webp",
+  ].forEach((src) => preloadImage(src).catch(() => {}));
+}
+
+function cardImageTag(card, priority = "high") {
+  const loading = priority === "high" ? "eager" : "lazy";
+  return `<img src="${card.image}" data-fallback-src="${card.fallbackImage}" alt="${escapeHtml(`${card.name} ${card.en}`)}" width="${CARD_IMAGE_WIDTH}" height="${CARD_IMAGE_HEIGHT}" loading="${loading}" decoding="async" fetchpriority="${priority}" />`;
 }
 
 function closeMenu() {
@@ -430,12 +504,18 @@ function startReading() {
 }
 
 function startLoading() {
+  const runId = ++loadingRun;
   showScreen("loading");
   window.clearTimeout(loadingTimer);
-  loadingTimer = window.setTimeout(() => {
-    prepareReading();
-    showScreen("reading");
-  }, state.service.noQuestion ? 3000 : 2600);
+  prepareReading();
+
+  const minimumDelay = new Promise((resolve) => {
+    loadingTimer = window.setTimeout(resolve, state.service.noQuestion ? 3000 : 2600);
+  });
+
+  Promise.all([minimumDelay, withTimeout(preloadActiveCards(), 1600)]).then(() => {
+    if (runId === loadingRun) showScreen("reading");
+  });
 }
 
 function prepareReading() {
@@ -493,7 +573,7 @@ function renderCards() {
           <button class="tarot-card${revealed}" data-card-index="${index}" aria-label="翻开${position}位置的牌">
             <span class="tarot-card-inner">
               <span class="tarot-back" aria-hidden="true"></span>
-              <span class="tarot-front"><img src="${card.image}" alt="${card.name} ${card.en}" /></span>
+              <span class="tarot-front">${cardImageTag(card)}</span>
             </span>
           </button>
           <div class="card-label">
@@ -536,7 +616,7 @@ function renderStaticCards(cards) {
         <button class="tarot-card is-revealed" type="button" tabindex="-1">
           <span class="tarot-card-inner">
             <span class="tarot-back" aria-hidden="true"></span>
-            <span class="tarot-front"><img src="${card.image}" alt="${card.name} ${card.en}" /></span>
+            <span class="tarot-front">${cardImageTag(card)}</span>
           </span>
         </button>
         <div class="card-label"><strong>${card.name}</strong><span>${card.en}</span></div>
@@ -559,7 +639,7 @@ function renderYesNoReading() {
             <span class="tarot-card-inner">
               <span class="tarot-back" aria-hidden="true"></span>
               <span class="tarot-front">
-                <img src="${card.image}" alt="${card.name} ${card.en}" />
+                ${cardImageTag(card)}
                 <span class="vote-mark ${vote}">${voteSymbol(vote)}</span>
               </span>
             </span>
@@ -1080,8 +1160,20 @@ function restartReading() {
 function shuffleAgain() {
   if (!state.question && !state.service.noQuestion) return;
   prepareReading();
+  preloadActiveCards();
   showToast("已重新洗牌。");
 }
+
+document.addEventListener(
+  "error",
+  (event) => {
+    const image = event.target;
+    if (!(image instanceof HTMLImageElement) || !image.dataset.fallbackSrc) return;
+    image.src = image.dataset.fallbackSrc;
+    image.removeAttribute("data-fallback-src");
+  },
+  true
+);
 
 document.addEventListener("click", (event) => {
   const categoryTarget = event.target.closest("[data-category]");
@@ -1146,5 +1238,6 @@ document.addEventListener("keydown", (event) => {
   if (event.key === "Escape") closeMenu();
 });
 
+preloadEssentials();
 renderServices();
 refreshIcons();
